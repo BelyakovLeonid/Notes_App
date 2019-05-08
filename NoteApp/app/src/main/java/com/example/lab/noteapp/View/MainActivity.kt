@@ -3,8 +3,10 @@ package com.example.lab.noteapp.View
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
@@ -109,6 +111,7 @@ class MainActivity : AppCompatActivity() {
             }
             R.id.action_deleteAll ->{
                 noteViewModel.deleteAll()
+                Toast.makeText(this, "Все заметки удалены", Toast.LENGTH_SHORT).show()
                 true
             }
             R.id.action_settings -> true
@@ -145,6 +148,14 @@ class MainActivity : AppCompatActivity() {
             val note = Note(id, title, text, image, null, color!!)
 
             noteViewModel.editNote(note)
+        }
+
+        if(requestCode == EDIT_NOTE_REQUEST && resultCode == Activity.RESULT_CANCELED){
+            val isDelete = data?.extras?.getBoolean("isDelete")
+
+            Log.d("MyTag","$isDelete")
+            if(isDelete == true)
+                Toast.makeText(this, "Заметка удалена", Toast.LENGTH_SHORT).show()
         }
     }
 }

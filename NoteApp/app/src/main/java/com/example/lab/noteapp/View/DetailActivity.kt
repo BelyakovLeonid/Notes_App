@@ -1,5 +1,6 @@
 package com.example.lab.noteapp.View
 
+import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
@@ -61,6 +62,10 @@ class DetailActivity: AppCompatActivity()  {
             }
             R.id.action_delete ->{
                 noteViewModel.deleteById(noteId)
+                val resIntent = Intent().apply {
+                    putExtra("isDelete", true)
+                }
+                setResult(Activity.RESULT_CANCELED, resIntent)
                 finish()
                 true
             }
