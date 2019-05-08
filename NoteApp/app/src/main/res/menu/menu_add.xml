@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto"
+      xmlns:tools="http://schemas.android.com/tools"
+      tools:context="com.example.lab.noteapp.View.AddActivity">
+
+    <item
+            android:id="@+id/action_notification"
+            android:icon="@drawable/ic_notifications"
+            android:orderInCategory="1"
+            app:showAsAction="always"
+            android:title="notification"/>
+
+    <item
+            android:id="@+id/action_photo"
+            android:icon="@drawable/ic_photo"
+            android:orderInCategory="2"
+            app:showAsAction="always"
+            android:title="photo"/>
+
+    <item
+            android:id="@+id/action_image"
+            android:icon="@drawable/ic_image"
+            android:orderInCategory="3"
+            app:showAsAction="always"
+            android:title="image"/>
+
+    <item
+            android:id="@+id/action_color"
+            android:icon="@drawable/ic_palette"
+            android:orderInCategory="4"
+            app:showAsAction="always"
+            android:title="color"/>
+</menu>

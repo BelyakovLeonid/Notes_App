@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          package="com.example.lab.noteapp">
+
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+
+    <uses-feature android:name="android.hardware.camera2"/>
+
+    <application
+            android:name=".App"
+            android:allowBackup="true"
+            android:icon="@mipmap/ic_launcher"
+            android:label="label1"
+            android:roundIcon="@mipmap/ic_launcher_round"
+            android:supportsRtl="true"
+            android:theme="@style/AppTheme">
+
+        <!-- основное активити !-->
+        <activity
+                android:name=".View.MainActivity"
+                android:label="@string/label1"
+                android:theme="@style/AppTheme.Launcher">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+
+        <!-- активити создания новой заметки!-->
+        <activity
+                android:name=".View.AddActivity"
+                android:label=""
+                android:theme="@style/AppTheme">
+        </activity>
+
+        <!-- активити для просмотра заметки!-->
+        <activity
+                android:name=".View.DetailActivity"
+                android:parentActivityName=".View.MainActivity"
+                android:label=""
+                android:theme="@style/AppTheme">
+        </activity>
+
+        <!-- нужен, чтобы создавать файлы для фото!-->
+        <provider
+                android:name="androidx.core.content.FileProvider"
+                android:authorities="com.example.lab.noteapp"
+                android:exported="false"
+                android:grantUriPermissions="true">
+            <meta-data
+                    android:name="android.support.FILE_PROVIDER_PATHS"
+                    android:resource="@xml/file_paths">
+            </meta-data>
+        </provider>
+
+
+    </application>
+
+</manifest>

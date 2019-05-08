@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+            android:id="@+id/color_yellow"
+            android:icon="@drawable/ic_color_yellow"
+            android:title=""
+            app:showAsAction="always"/>
+
+    <item
+            android:id="@+id/color_blue"
+            android:icon="@drawable/ic_color_blue"
+            android:title=""
+    app:showAsAction="collapseActionView"/>
+
+    <item
+            android:id="@+id/color_white"
+            android:icon="@drawable/ic_color_white"
+            android:title=""
+    app:showAsAction="never"/>
+
+</menu>

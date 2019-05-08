@@ -1,0 +1,29 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto"
+      xmlns:tools="http://schemas.android.com/tools"
+      tools:context="com.example.lab.noteapp.View.MainActivity">
+
+    <item
+            android:id="@+id/action_search"
+            android:icon="@drawable/ic_search"
+            android:orderInCategory="1"
+            app:showAsAction="ifRoom"
+            android:title="search"/>
+
+    <item
+            android:id="@+id/action_orientation"
+            android:icon="@drawable/ic_list"
+            android:orderInCategory="2"
+            app:showAsAction="ifRoom"
+            android:title="orientation"/>
+
+    <item android:id="@+id/action_deleteAll"
+          android:title="@string/action_deleteAll"
+          android:orderInCategory="3"
+          app:showAsAction="never"/>
+
+    <item android:id="@+id/action_settings"
+          android:title="@string/action_settings"
+          android:orderInCategory="4"
+          app:showAsAction="never"/>
+</menu>

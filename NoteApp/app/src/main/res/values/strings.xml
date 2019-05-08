@@ -1,0 +1,6 @@
+<resources>
+    <string name="label1">LeoNotes</string>
+    <string name="label2">New note</string>
+    <string name="action_settings">Settings</string>
+    <string name="action_deleteAll">Удалить все</string>
+</resources>
