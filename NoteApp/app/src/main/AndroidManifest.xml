@@ -14,7 +14,8 @@
             android:label="label1"
             android:roundIcon="@mipmap/ic_launcher_round"
             android:supportsRtl="true"
-            android:theme="@style/AppTheme">
+            android:theme="@style/AppTheme"
+           >
 
         <!-- основное активити !-->
         <activity
@@ -23,9 +24,22 @@
                 android:theme="@style/AppTheme.Launcher">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
-
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+        </activity>
+
+        <!-- активити поиска заметок!-->
+        <activity
+                android:name=".View.SearchActivity"
+                android:label=""
+                android:launchMode="singleTop"
+                android:theme="@style/AppTheme">
+            <intent-filter>
+                <action android:name="android.intent.action.SEARCH"/>
+            </intent-filter>
+            <meta-data
+                    android:name="android.app.searchable"
+                    android:resource="@xml/searchable"/>
         </activity>
 
         <!-- активити создания новой заметки!-->
@@ -55,6 +69,8 @@
             </meta-data>
         </provider>
 
+        <!-- нужен, чтобы показывать напоминания!-->
+        <receiver android:name=".Utils.MyAlarmReceiver"/>
 
     </application>
 

@@ -40,4 +40,6 @@ class NoteViewModel: ViewModel() {
 
     fun getNoteById(id: Int) = NotesRepo.getNoteById(id)
 
+    fun searchNotes(search: String) = NotesRepo.searchNotes(search)
+
 }

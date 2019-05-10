@@ -54,7 +54,6 @@ class DetailActivity: AppCompatActivity()  {
             R.id.action_edit ->{
                 Intent(this, AddActivity::class.java).also {
                     it.putExtra("noteId", noteId)
-                    it.setFlags(Intent.FLAG_ACTIVITY_FORWARD_RESULT)
                     startActivity(it)
                 }
                 finish()

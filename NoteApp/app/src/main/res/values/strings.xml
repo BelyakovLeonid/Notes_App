@@ -3,4 +3,6 @@
     <string name="label2">New note</string>
     <string name="action_settings">Settings</string>
     <string name="action_deleteAll">Удалить все</string>
+    <string name="label">label</string>
+    <string name="hint">Поиск заметок</string>
 </resources>

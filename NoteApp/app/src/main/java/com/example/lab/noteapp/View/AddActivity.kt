@@ -1,34 +1,28 @@
 package com.example.lab.noteapp.View
 
-import android.app.Activity
-import android.app.NotificationChannel
-import android.app.NotificationManager
+import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
 import android.provider.MediaStore.Images.Media.getBitmap
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
-import androidx.core.app.TaskStackBuilder
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import androidx.core.view.get
 import androidx.lifecycle.ViewModelProviders
 import com.example.lab.noteapp.Model.Note
 import com.example.lab.noteapp.R
+import com.example.lab.noteapp.Utils.MyAlarmReceiver
 import com.example.lab.noteapp.ViewModel.NoteViewModel
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_add.*
 import kotlinx.android.synthetic.main.activity_main.toolbar
 import java.io.File
@@ -53,19 +47,21 @@ class AddActivity: AppCompatActivity()  {
         setContentView(R.layout.activity_add)
         setSupportActionBar(toolbar)
 
+        noteViewModel = ViewModelProviders.of(this).get(NoteViewModel::class.java)
+
         noteId = intent.getIntExtra("noteId", -1)
 
         if(noteId != -1){
-            noteViewModel = ViewModelProviders.of(this).get(NoteViewModel::class.java)
             noteViewModel.getNoteById(noteId).observe(this, androidx.lifecycle.Observer{
                 if (it != null)
                     refreshUI(it)
             })
+        }else{
+            button1.isChecked = true
         }
 
         radioGroup.setOnCheckedChangeListener { group, checkedId ->
-            var res: Int = 0
-            Log.d("MyTag", "$checkedId ____ ${group[1].id}")
+            var res = 0
             when(checkedId){
                 group[0].id -> res = R.color.color1
                 group[1].id -> res = R.color.color2
@@ -82,39 +78,32 @@ class AddActivity: AppCompatActivity()  {
         button.setOnClickListener {
             //если ничего не ввели, то создать заметку невозможно
             if(titleView.text.isEmpty() && textView.text.isEmpty() && uri == null){
-                Toast.makeText(this, "Вы ничего не ввели", Toast.LENGTH_SHORT).show()
+                Snackbar.make(layout, "Вы ничего не ввели", Snackbar.LENGTH_LONG).show()
             }else {
-                val resIntent = Intent()
-                with(resIntent) {
-                    putExtra("title", titleView.text.toString())
-                    putExtra("text", textView.text.toString())
-                    putExtra("image", uri?.toString())
-                    putExtra("color", colorRes)
-                    if (noteId != -1) putExtra("noteId", noteId)
+                if(noteId != -1){
+                    noteViewModel.editNote(getNoteFromActivity(noteId))
+                }else{
+                    noteViewModel.addNote(getNoteFromActivity(noteId))
                 }
-                setResult(Activity.RESULT_OK, resIntent)
                 finish()
             }
         }
-
-        createNotificationChannel()
     }
 
-    private fun createNotificationChannel() {
-        // Создание NotificationChannel требуется только для API 26+
-        // потому что класс NotificationChannel новый и находится не в support library
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val name = "NAME"
-            val descriptionText = "DESCRIPTION"
-            val importance = NotificationManager.IMPORTANCE_DEFAULT
-            val channel = NotificationChannel(CHANNEL_ID, name, importance).apply {
-                description = descriptionText
-            }
-            // Register the channel with the system
-            val notificationManager: NotificationManager =
-                getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            notificationManager.createNotificationChannel(channel)
-        }
+
+    fun getNoteFromActivity(noteId: Int): Note {
+        val title = titleView.text.toString()
+        val text = textView.text.toString()
+        val image = uri?.toString()
+        val color = colorRes
+
+        val note = if(noteId != -1){
+                            Note(noteId, title, text, image, null, color, null)
+                        }else{
+                            Note(null, title, text, image, null, color, null)
+                        }
+
+        return note
     }
 
     fun refreshUI(note: Note){
@@ -163,33 +152,15 @@ class AddActivity: AppCompatActivity()  {
 
             //уведомления
             R.id.action_notification ->{
+                val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
-                //создаем интент, который вызовется при нажатии на уведомление
-                val notificationIntent = Intent(this, DetailActivity::class.java)
-                notificationIntent.putExtra("noteId", noteId)
-
-                //создаем "оболочку" для нашего интента
-                val pendingIntent2 = PendingIntent.getActivity(this, 0 , notificationIntent,PendingIntent.FLAG_CANCEL_CURRENT)
-
-                val pendingIntent = TaskStackBuilder.create(this).run{
-                    addNextIntentWithParentStack(notificationIntent)
-                    getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT)
+                val notificationIntent = Intent(this, MyAlarmReceiver::class.java).apply{
+                    putExtra("noteId", noteId)
                 }
 
-                val time = (Date().time - 1000000L)
-                //создаем уведомление
-                val notification = NotificationCompat.Builder(this, CHANNEL_ID)
-                                                            .setSmallIcon(R.drawable.ic_notifications)
-                                                            .setContentTitle("MyFirstNotification")
-                                                            .setContentText("ReallyFirst")
-                                                            .setWhen(time)
-                                                            .setShowWhen(true)
-                                                            .setContentIntent(pendingIntent)
-                                                            .setAutoCancel(true)
-                                                            .build()
+                val pendingIntent = PendingIntent.getBroadcast(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT)
 
-                NotificationManagerCompat.from(this).notify(1, notification)
-
+                alarmManager.set(AlarmManager.RTC_WAKEUP, Date().time + 7000L ,pendingIntent)
                 true
             }
 

@@ -16,6 +16,8 @@ object NotesRepo {
 
     fun getNotes(): LiveData<Array<Note>> = noteDao.getAll()
 
+    fun searchNotes(search: String): LiveData<Array<Note>> = noteDao.searchNotes(search)
+
     fun addNote(note: Note){
         GlobalScope.launch {
             noteDao.addNote(note)
