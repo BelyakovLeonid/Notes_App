@@ -5,29 +5,32 @@ import android.app.SearchManager
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.lab.noteapp.App
 import com.example.lab.noteapp.Model.Note
 import com.example.lab.noteapp.R
 import com.example.lab.noteapp.View.Adapter.NoteAdapter
+import com.example.lab.noteapp.View.Adapter.NoteGridDecorator
+import com.example.lab.noteapp.View.Adapter.NoteLinearDecorator
 import com.example.lab.noteapp.ViewModel.NoteViewModel
 import com.google.android.material.snackbar.Snackbar
-import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.activity_main.toolbar
 import kotlinx.android.synthetic.main.activity_search.*
-import kotlinx.android.synthetic.main.content_main.resView
+
 
 class SearchActivity: AppCompatActivity() {
 
     private var searchQuery: String? = null
     private val EDIT_NOTE_REQUEST = 2
+    private var orientation = true
     private lateinit var menu: Menu
-
     private lateinit var noteViewModel: NoteViewModel
     private lateinit var noteAdapter: NoteAdapter
 
@@ -35,6 +38,17 @@ class SearchActivity: AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_search)
         setSupportActionBar(toolbar)
+        orientation = App.prefs!!.lastOrientation
+
+        Log.d("MyTag", "orientation = ${orientation}")
+
+        if(orientation) {
+            resView.addItemDecoration(NoteLinearDecorator(resources.getDimension(R.dimen.recycler_margin).toInt()))
+            resView.layoutManager = LinearLayoutManager(this)
+        }else {
+            resView.addItemDecoration(NoteGridDecorator(resources.getDimension(R.dimen.recycler_margin).toInt()))
+            resView.layoutManager = GridLayoutManager(this, 2)
+        }
 
         noteViewModel = ViewModelProviders.of(this).get(NoteViewModel::class.java)
 
@@ -60,7 +74,6 @@ class SearchActivity: AppCompatActivity() {
     }
 
     fun refreshUI(notes: Array<Note>){
-        resView.layoutManager = LinearLayoutManager(this)
         noteAdapter = NoteAdapter(notes, this, {note: Note -> onNoteClick(note)})
         resView.adapter = noteAdapter
 
@@ -146,7 +159,7 @@ class SearchActivity: AppCompatActivity() {
         if(requestCode == EDIT_NOTE_REQUEST && resultCode == Activity.RESULT_CANCELED){
             val isDelete = data?.extras?.getBoolean("isDelete")
             if(isDelete == true)
-                Snackbar.make(coordinator, "Заметка удалена", Snackbar.LENGTH_SHORT).show()
+                Snackbar.make(layout, "Заметка удалена", Snackbar.LENGTH_SHORT).show()
         }
     }
 }

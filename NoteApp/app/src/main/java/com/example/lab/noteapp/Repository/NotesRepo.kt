@@ -3,8 +3,7 @@ package com.example.lab.noteapp.Repository
 import androidx.lifecycle.LiveData
 import com.example.lab.noteapp.App
 import com.example.lab.noteapp.Model.Note
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 
 object NotesRepo {
 
@@ -18,10 +17,8 @@ object NotesRepo {
 
     fun searchNotes(search: String): LiveData<Array<Note>> = noteDao.searchNotes(search)
 
-    fun addNote(note: Note){
-        GlobalScope.launch {
-            noteDao.addNote(note)
-        }.start()
+    fun addNote(note: Note): Long = runBlocking {
+        withContext(Dispatchers.Default){ noteDao.addNote(note)}
     }
 
     fun deleteAll(){

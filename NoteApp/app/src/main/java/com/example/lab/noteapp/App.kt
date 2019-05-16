@@ -7,6 +7,10 @@ import com.example.lab.noteapp.Utils.SharedPref
 class App: Application() {
 
     companion object{
+        val ACTION_RESCHEDULE_ALARMS = "ACTION_RESCHEDULE_ALARMS"
+        val ACTION_SET_NOTIFICATION = "ACTION_SET_NOTIFICATION"
+        val ACTION_DELETE_NOTIFICATION = "ACTION_DELETE_NOTIFICATION"
+
         lateinit var instance: App
         lateinit var noteDB: NoteDB
         var prefs: SharedPref? = null

@@ -16,9 +16,10 @@ class NoteViewModel: ViewModel() {
         notes = NotesRepo.getNotes()
     }
 
-    fun addNote(note: Note){
-        NotesRepo.addNote(note)
+    fun addNote(note: Note): Long {
+        val res = NotesRepo.addNote(note)
         refreshNotes()
+        return res
     }
 
     fun deleteAll(){

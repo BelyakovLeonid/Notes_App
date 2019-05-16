@@ -4,6 +4,7 @@
 
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
 
     <uses-feature android:name="android.hardware.camera2"/>
 
@@ -70,7 +71,18 @@
         </provider>
 
         <!-- нужен, чтобы показывать напоминания!-->
-        <receiver android:name=".Utils.MyAlarmReceiver"/>
+        <receiver
+                android:name=".Utils.MyAlarmReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+            </intent-filter>
+        </receiver>
+
+        <!-- нужен, чтобы восстановить напоминания после перезагрузки!-->
+        <service
+                android:name=".Utils.MyAlarmService"
+                android:description="@string/action_deleteAll">
+        </service>
 
     </application>
 

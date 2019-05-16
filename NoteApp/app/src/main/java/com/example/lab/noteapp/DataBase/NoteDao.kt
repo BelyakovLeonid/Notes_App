@@ -12,12 +12,12 @@ import com.example.lab.noteapp.Model.Note
 interface NoteDao {
 
     @Insert(onConflict = REPLACE )
-    fun addNote(note: Note)
+    suspend fun addNote(note: Note): Long
 
     @Update
     fun editNote(note: Note)
 
-    @Query("SELECT * FROM note WHERE id = :noteId")
+    @Query("SELECT * FROM note WHERE rowid = :noteId")
     fun getNoteById(noteId: Int): LiveData<Note>
 
     @Query("SELECT * FROM note WHERE title LIKE :search OR text LIKE :search")
@@ -26,9 +26,15 @@ interface NoteDao {
     @Query("SELECT * FROM note")
     fun getAll(): LiveData<Array<Note>>
 
+    @Query("SELECT * FROM note")
+    fun getAllSync(): Array<Note>
+
+    @Query("SELECT * FROM note WHERE rowid = :noteId")
+    fun getNoteSyinc(noteId: Int): Note
+
     @Query("DELETE FROM note")
     fun deleteALL()
 
-    @Query("DELETE FROM note WHERE id = :noteId")
+    @Query("DELETE FROM note WHERE rowid = :noteId")
     fun deleteById(noteId: Int)
 }

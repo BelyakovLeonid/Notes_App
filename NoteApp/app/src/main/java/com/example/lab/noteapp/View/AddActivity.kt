@@ -1,7 +1,9 @@
 package com.example.lab.noteapp.View
 
 import android.app.AlarmManager
+import android.app.DatePickerDialog
 import android.app.PendingIntent
+import android.app.TimePickerDialog
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
@@ -13,6 +15,8 @@ import android.provider.MediaStore.Images.Media.getBitmap
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.DatePicker
+import android.widget.TimePicker
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
@@ -36,11 +40,14 @@ class AddActivity: AppCompatActivity()  {
 
     private val TAKE_PHOTO_REQUEST = 1
     private val TAKE_GALLERY_REQUEST = 2
+
     private var uri: Uri? = null
     private var colorRes: Int = R.color.color1
     private var noteId: Int = -1
+    private var alarmMillis: Long? = null
+    private var haveAlarm: Boolean = false
+
     private lateinit var noteViewModel: NoteViewModel
-    private val CHANNEL_ID = "MyFirstChannel"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,17 +55,9 @@ class AddActivity: AppCompatActivity()  {
         setSupportActionBar(toolbar)
 
         noteViewModel = ViewModelProviders.of(this).get(NoteViewModel::class.java)
-
         noteId = intent.getIntExtra("noteId", -1)
 
-        if(noteId != -1){
-            noteViewModel.getNoteById(noteId).observe(this, androidx.lifecycle.Observer{
-                if (it != null)
-                    refreshUI(it)
-            })
-        }else{
-            button1.isChecked = true
-        }
+        initUI(noteId)
 
         radioGroup.setOnCheckedChangeListener { group, checkedId ->
             var res = 0
@@ -75,35 +74,53 @@ class AddActivity: AppCompatActivity()  {
             colorRes = res
         }
 
+        buttonAlarm.setOnClickListener{
+            getAlarmDate()
+        }
+
+        deleteAlarm.setOnClickListener{
+            cancelAlarm()
+        }
+
         button.setOnClickListener {
             //если ничего не ввели, то создать заметку невозможно
             if(titleView.text.isEmpty() && textView.text.isEmpty() && uri == null){
                 Snackbar.make(layout, "Вы ничего не ввели", Snackbar.LENGTH_LONG).show()
             }else {
+                //редактируем или создаем заметку
                 if(noteId != -1){
                     noteViewModel.editNote(getNoteFromActivity(noteId))
                 }else{
-                    noteViewModel.addNote(getNoteFromActivity(noteId))
+                    noteId = noteViewModel.addNote(getNoteFromActivity(noteId)).toInt()
                 }
+
+                //устанавливаем/удаляем уведомление
+                if(alarmMillis != null){
+                    if(alarmMillis!! > Date().time){
+                        setAlarm(noteId, alarmMillis!!)
+                    }
+                }else{
+                    if(haveAlarm){
+                        deleteAlarm(noteId)
+                    }
+                }
+
                 finish()
             }
         }
     }
 
-
-    fun getNoteFromActivity(noteId: Int): Note {
-        val title = titleView.text.toString()
-        val text = textView.text.toString()
-        val image = uri?.toString()
-        val color = colorRes
-
-        val note = if(noteId != -1){
-                            Note(noteId, title, text, image, null, color, null)
-                        }else{
-                            Note(null, title, text, image, null, color, null)
-                        }
-
-        return note
+    fun initUI(noteId: Int){
+        if(noteId != -1){
+            noteViewModel.getNoteById(noteId).observe(this, androidx.lifecycle.Observer{
+                if (it != null)
+                    refreshUI(it)
+            })
+        }else{
+            button1.isChecked = true
+            buttonAlarm.visibility = View.INVISIBLE
+            deleteAlarm.visibility = View.INVISIBLE
+        }
     }
 
     fun refreshUI(note: Note){
@@ -118,10 +135,96 @@ class AddActivity: AppCompatActivity()  {
             else -> button1.isChecked = true
         }
 
+        note.alarm?.let{
+            haveAlarm = true
+            alarmMillis = it
+            setTimeToButton(it)}
         layout.setBackgroundResource(colorRes)
         titleView.setText(note.title)
         textView.setText(note.text)
         image.setImageURI(uri)
+    }
+
+    fun setTimeToButton(time: Long){
+        buttonAlarm.visibility = View.VISIBLE
+        deleteAlarm.visibility = View.VISIBLE
+        val dateFormat = android.icu.text.SimpleDateFormat("dd MMMM yyyy HH:mm")
+        buttonAlarm.text = dateFormat.format(time)
+    }
+
+    fun cancelAlarm(){
+        buttonAlarm.visibility = View.INVISIBLE
+        deleteAlarm.visibility = View.INVISIBLE
+        alarmMillis = null
+    }
+
+    fun getAlarmDate(){
+        val clnd = Calendar.getInstance()
+        alarmMillis?.let { clnd.timeInMillis = alarmMillis!! }
+
+        val min = clnd.get(Calendar.MINUTE)
+        val h = clnd.get(Calendar.HOUR_OF_DAY)
+        val d = clnd.get(Calendar.DAY_OF_MONTH)
+        val m = clnd.get(Calendar.MONTH)
+        val y  = clnd.get(Calendar.YEAR)
+
+        DatePickerDialog(this, object: DatePickerDialog.OnDateSetListener{
+            override fun onDateSet(view: DatePicker?, year: Int, month: Int, dayOfMonth: Int) {
+                TimePickerDialog( this@AddActivity, object: TimePickerDialog.OnTimeSetListener{
+                    override fun onTimeSet(view: TimePicker?, hourOfDay: Int, minute: Int) {
+
+                        val grClnd = GregorianCalendar().apply {
+                            this.set(Calendar.YEAR, year)
+                            this.set(Calendar.MONTH, month)
+                            this.set(Calendar.DAY_OF_MONTH, dayOfMonth)
+                            this.set(Calendar.HOUR_OF_DAY, hourOfDay)
+                            this.set(Calendar.MINUTE, minute)
+                        }
+                        alarmMillis = grClnd.time.time.div(60000L)*60000L //округляем до минут
+                        setTimeToButton(alarmMillis!!)
+                    }
+                }, h, min, true).show()
+            }
+        }, y, m, d).show()
+    }
+
+    fun getNoteFromActivity(noteId: Int): Note {
+        val title = titleView.text.toString()
+        val text = textView.text.toString()
+        val image = uri?.toString()
+        val color = colorRes
+        val alarm = alarmMillis
+
+        val note = if(noteId != -1){
+                            Note(noteId, title, text, image, null, color, alarm)
+                        }else{
+                            Note(null, title, text, image, null, color, alarm)
+                        }
+        return note
+    }
+
+    fun setAlarm(id: Int, alarm: Long){
+        val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val notificationIntent = Intent(this, MyAlarmReceiver::class.java).apply{
+            putExtra("noteId", id)
+        }
+
+        val pendingIntent =
+            PendingIntent.getBroadcast(this, id, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+
+        alarmManager.set(AlarmManager.RTC_WAKEUP, alarm ,pendingIntent)
+    }
+
+    fun deleteAlarm(id: Int){
+        val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val notificationIntent = Intent(this, MyAlarmReceiver::class.java).apply{
+            putExtra("noteId", id)
+        }
+
+        val pendingIntent =
+            PendingIntent.getBroadcast(this, id, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+
+        alarmManager.cancel(pendingIntent)
     }
 
     @Throws(IOException::class)
@@ -138,7 +241,7 @@ class AddActivity: AppCompatActivity()  {
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
-         menuInflater.inflate(R.menu.menu_add, menu)
+        menuInflater.inflate(R.menu.menu_add, menu)
         return true
     }
 
@@ -152,15 +255,7 @@ class AddActivity: AppCompatActivity()  {
 
             //уведомления
             R.id.action_notification ->{
-                val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
-
-                val notificationIntent = Intent(this, MyAlarmReceiver::class.java).apply{
-                    putExtra("noteId", noteId)
-                }
-
-                val pendingIntent = PendingIntent.getBroadcast(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT)
-
-                alarmManager.set(AlarmManager.RTC_WAKEUP, Date().time + 7000L ,pendingIntent)
+                getAlarmDate()
                 true
             }
 
@@ -190,11 +285,11 @@ class AddActivity: AppCompatActivity()  {
 
             //фото из галереи
             R.id.action_image ->{
-
-                val picIntent = Intent(Intent.ACTION_OPEN_DOCUMENT)
-                picIntent.addCategory(Intent.CATEGORY_OPENABLE)
-                picIntent.setType("image/*")
-                startActivityForResult(picIntent, TAKE_GALLERY_REQUEST)
+                Intent(Intent.ACTION_OPEN_DOCUMENT).also {
+                    it.addCategory(Intent.CATEGORY_OPENABLE)
+                    it.setType("image/*")
+                    startActivityForResult(it, TAKE_GALLERY_REQUEST)
+                }
 
                 true
             }
